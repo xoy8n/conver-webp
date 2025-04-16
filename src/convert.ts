@@ -13,22 +13,19 @@ export async function convertToWebP(
   keepOriginal: boolean = false
 ): Promise<any> {
   try {
+    // 경로 정규화 - 플랫폼에 맞는 경로 구분자 사용
+    const normalizedImagePath = imagePath.split("/").join(path.sep);
+
     // 절대 경로 유지
-    const absoluteImagePath = path.isAbsolute(imagePath)
-      ? imagePath
-      : path.resolve(imagePath);
+    const absoluteImagePath = path.isAbsolute(normalizedImagePath)
+      ? normalizedImagePath
+      : path.resolve(normalizedImagePath);
+
+    console.log(`Attempting to process: ${absoluteImagePath}`);
 
     // 입력 파일이 존재하는지 확인
     if (!fs.existsSync(absoluteImagePath)) {
-      // 디렉토리 확인 및 생성
-      const imageDir = path.dirname(absoluteImagePath);
-      if (!fs.existsSync(imageDir)) {
-        fs.mkdirSync(imageDir, { recursive: true });
-        // 디렉토리를 생성했지만 파일이 없으므로 에러 반환
-        throw new Error(`입력 파일이 존재하지 않습니다: ${absoluteImagePath}`);
-      } else {
-        throw new Error(`입력 파일이 존재하지 않습니다: ${absoluteImagePath}`);
-      }
+      throw new Error(`Input file is missing: ${absoluteImagePath}`);
     }
 
     // 이미지 확장자 확인
@@ -52,6 +49,8 @@ export async function convertToWebP(
     // 변환 옵션 설정
     const options = { quality, lossless };
 
+    console.log(`Converting to WebP: ${outputPath}`);
+
     // 이미지 변환
     await sharp(absoluteImagePath).webp(options).toFile(outputPath);
 
@@ -72,6 +71,7 @@ export async function convertToWebP(
       lossless,
     };
   } catch (error: any) {
+    console.error(`Error converting image: ${error.message}`);
     return {
       success: false,
       error: error.message,
@@ -90,14 +90,17 @@ export async function convertBase64ToWebP(
   lossless: boolean = false
 ): Promise<any> {
   try {
+    // 경로 정규화
+    const normalizedOutputPath = outputPath.split("/").join(path.sep);
+
     // Base64 데이터에서 메타데이터 제거 (data:image/jpeg;base64, 등)
     const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, "");
     const buffer = Buffer.from(base64Data, "base64");
 
     // 출력 디렉토리 확인 및 생성
-    const absoluteOutputPath = path.isAbsolute(outputPath)
-      ? outputPath
-      : path.resolve(outputPath);
+    const absoluteOutputPath = path.isAbsolute(normalizedOutputPath)
+      ? normalizedOutputPath
+      : path.resolve(normalizedOutputPath);
     const outputDir = path.dirname(absoluteOutputPath);
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
@@ -118,6 +121,7 @@ export async function convertBase64ToWebP(
       lossless,
     };
   } catch (error: any) {
+    console.error(`Error converting base64 image: ${error.message}`);
     return {
       success: false,
       error: error.message,
