@@ -25,7 +25,7 @@ export async function convertToWebP(
 
     // 입력 파일이 존재하는지 확인
     if (!fs.existsSync(absoluteImagePath)) {
-      throw new Error(`Input file is missing: ${absoluteImagePath}`);
+      throw new Error(`!Input file is missing: ${absoluteImagePath}`);
     }
 
     // 이미지 확장자 확인
