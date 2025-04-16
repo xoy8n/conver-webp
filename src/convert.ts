@@ -13,45 +13,60 @@ export async function convertToWebP(
   keepOriginal: boolean = false
 ): Promise<any> {
   try {
+    // 절대 경로 유지
+    const absoluteImagePath = path.isAbsolute(imagePath)
+      ? imagePath
+      : path.resolve(imagePath);
+
     // 입력 파일이 존재하는지 확인
-    if (!fs.existsSync(imagePath)) {
-      throw new Error(`입력 파일이 존재하지 않습니다: ${imagePath}`);
+    if (!fs.existsSync(absoluteImagePath)) {
+      // 디렉토리 확인 및 생성
+      const imageDir = path.dirname(absoluteImagePath);
+      if (!fs.existsSync(imageDir)) {
+        fs.mkdirSync(imageDir, { recursive: true });
+        // 디렉토리를 생성했지만 파일이 없으므로 에러 반환
+        throw new Error(`입력 파일이 존재하지 않습니다: ${absoluteImagePath}`);
+      } else {
+        throw new Error(`입력 파일이 존재하지 않습니다: ${absoluteImagePath}`);
+      }
     }
 
     // 이미지 확장자 확인
-    const ext = path.extname(imagePath).toLowerCase();
+    const ext = path.extname(absoluteImagePath).toLowerCase();
     if (![".png", ".jpg", ".jpeg"].includes(ext)) {
       throw new Error(`지원되지 않는 이미지 형식입니다: ${ext}`);
     }
 
     // 출력 파일명 생성
-    const filename = path.basename(imagePath, ext);
+    const filename = path.basename(absoluteImagePath, ext);
     const outputPath = outputDir
       ? path.join(outputDir, `${filename}.webp`)
-      : path.join(path.dirname(imagePath), `${filename}.webp`);
+      : path.join(path.dirname(absoluteImagePath), `${filename}.webp`);
 
     // 출력 디렉토리가 지정된 경우 존재하는지 확인하고 생성
-    if (outputDir && !fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
+    const outputDirPath = outputDir || path.dirname(outputPath);
+    if (!fs.existsSync(outputDirPath)) {
+      fs.mkdirSync(outputDirPath, { recursive: true });
     }
 
     // 변환 옵션 설정
     const options = { quality, lossless };
 
     // 이미지 변환
-    await sharp(imagePath).webp(options).toFile(outputPath);
+    await sharp(absoluteImagePath).webp(options).toFile(outputPath);
 
     // 원본 파일 삭제 여부 확인
     if (!keepOriginal) {
-      fs.unlinkSync(imagePath);
+      fs.unlinkSync(absoluteImagePath);
     }
 
     // 결과 반환
     return {
       success: true,
-      input_path: imagePath,
+      input_path: absoluteImagePath,
       output_path: outputPath,
-      size_before: fs.statSync(keepOriginal ? imagePath : outputPath).size,
+      size_before: fs.statSync(keepOriginal ? absoluteImagePath : outputPath)
+        .size,
       size_after: fs.statSync(outputPath).size,
       quality,
       lossless,
@@ -80,7 +95,10 @@ export async function convertBase64ToWebP(
     const buffer = Buffer.from(base64Data, "base64");
 
     // 출력 디렉토리 확인 및 생성
-    const outputDir = path.dirname(outputPath);
+    const absoluteOutputPath = path.isAbsolute(outputPath)
+      ? outputPath
+      : path.resolve(outputPath);
+    const outputDir = path.dirname(absoluteOutputPath);
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -89,13 +107,13 @@ export async function convertBase64ToWebP(
     const options = { quality, lossless };
 
     // 이미지 변환
-    await sharp(buffer).webp(options).toFile(outputPath);
+    await sharp(buffer).webp(options).toFile(absoluteOutputPath);
 
     // 결과 반환
     return {
       success: true,
-      output_path: outputPath,
-      size: fs.statSync(outputPath).size,
+      output_path: absoluteOutputPath,
+      size: fs.statSync(absoluteOutputPath).size,
       quality,
       lossless,
     };
