@@ -4,8 +4,8 @@ startCommand:
     type: object
     properties: {}
   commandFunction: |
-    (config) => ({ 
-      command: 'node', 
-      args: ['dist/index.js'],
+    (config) => ({
+      command: 'python',
+      args: ['server.py'],
       env: {}
     })

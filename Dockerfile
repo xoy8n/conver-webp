@@ -1,17 +1,20 @@
-FROM node:18-alpine
+FROM python:3.11-alpine
 
-# 작업 디렉토리 생성
+# Install system dependencies for Pillow
+RUN apk add --no-cache jpeg-dev zlib-dev libjpeg
+
+# Set working directory
 WORKDIR /app
 
-# 패키지 파일 복사 및 의존성 설치
-COPY package*.json ./
-RUN npm install
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 소스 코드 복사
-COPY . .
+# Copy application code
+COPY server.py .
 
-# TypeScript 빌드
-RUN npm run build
+# Make the script executable
+RUN chmod +x server.py
 
-# 서버 실행
-CMD ["node", "dist/index.js"] 
+# Run the MCP server
+CMD ["python", "server.py"] 
