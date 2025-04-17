@@ -1,3 +1,5 @@
+build:
+  dockerfile: ./Dockerfile
 startCommand:
   type: stdio
   configSchema:
@@ -7,5 +9,8 @@ startCommand:
     (config) => ({
       command: 'python',
       args: ['server.py'],
-      env: {}
+      env: { 
+        "PYTHONUNBUFFERED": "1",
+        "DEBUG": "1"
+      }
     })

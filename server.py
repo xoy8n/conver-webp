@@ -6,20 +6,39 @@ import traceback
 from PIL import Image
 import uuid
 
+# 디버그 모드 확인
+DEBUG = os.environ.get("DEBUG", "0") == "1"
+
 def log(message):
     """Log a message to stderr"""
-    print(message, file=sys.stderr, flush=True)
+    print(f"[LOG] {message}", file=sys.stderr, flush=True)
+
+def debug(message):
+    """Log a debug message to stderr if DEBUG is enabled"""
+    if DEBUG:
+        print(f"[DEBUG] {message}", file=sys.stderr, flush=True)
 
 def send_response(response):
     """Send a response to stdout"""
-    print(json.dumps(response), flush=True)
+    try:
+        debug(f"Sending response: {json.dumps(response)[:200]}...")
+        print(json.dumps(response), flush=True)
+    except Exception as e:
+        log(f"Error sending response: {str(e)}")
 
 def receive_request():
     """Receive a request from stdin"""
-    line = sys.stdin.readline()
-    if not line:
-        return None
-    return json.loads(line)
+    try:
+        debug("Waiting for request...")
+        line = sys.stdin.readline()
+        if not line:
+            log("Received empty line, returning None")
+            return None
+        debug(f"Received request: {line[:200]}...")
+        return json.loads(line)
+    except Exception as e:
+        log(f"Error receiving request: {str(e)}")
+        raise
 
 def convert_to_webp(image_path, quality=80, lossless=False, keep_original=False):
     """Convert an image to WebP format and replace the original"""
@@ -236,6 +255,16 @@ def handle_tools_list():
         }
     }
 
+def handle_health_check():
+    """Handle the health check method"""
+    return {
+        "jsonrpc": "2.0",
+        "result": {
+            "status": "ok",
+            "version": "1.0.0"
+        }
+    }
+
 def handle_tool_call(request):
     """Handle a tool call request"""
     method = request.get("method")
@@ -302,21 +331,40 @@ def handle_tool_call(request):
 
 def main():
     """Main function to handle MCP requests"""
+    log("Starting WebP Converter MCP server...")
+    
+    try:
+        log("Checking Pillow installation...")
+        pil_version = Image.__version__
+        log(f"Pillow version: {pil_version}")
+    except Exception as e:
+        log(f"Error checking Pillow installation: {str(e)}")
+    
     while True:
         try:
             request = receive_request()
             
             if request is None:
+                log("Received None request, exiting...")
                 break
             
-            method = request.get("method")
+            request_id = request.get("id", "unknown")
+            method = request.get("method", "unknown")
+            log(f"Processing request ID {request_id}, method: {method}")
             
             if method == "initialize":
                 response = handle_initialize()
+                log("Handled initialize request")
             elif method == "/tools/list":
                 response = handle_tools_list()
+                log("Handled tools list request")
+            elif method == "/health":
+                response = handle_health_check()
+                log("Handled health check request")
             else:
+                log(f"Handling tool call: {method}")
                 response = handle_tool_call(request)
+                log(f"Handled tool call: {method}")
             
             response["id"] = request.get("id")
             send_response(response)
@@ -340,4 +388,8 @@ def main():
             send_response(error_response)
 
 if __name__ == "__main__":
-    main() 
+    try:
+        main()
+    except Exception as e:
+        log(f"Fatal error in main: {str(e)}\n{traceback.format_exc()}")
+        sys.exit(1) 
