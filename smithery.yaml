@@ -1,16 +1,11 @@
-build:
-  dockerfile: ./Dockerfile
 startCommand:
   type: stdio
   configSchema:
     type: object
     properties: {}
   commandFunction: |
-    (config) => ({
-      command: 'python',
-      args: ['server.py'],
-      env: { 
-        "PYTHONUNBUFFERED": "1",
-        "DEBUG": "1"
-      }
+    (config) => ({ 
+      command: 'node', 
+      args: ['dist/index.js'],
+      env: {}
     })

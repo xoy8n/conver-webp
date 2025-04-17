@@ -1,72 +1,81 @@
-# WebP Converter MCP Server
+# WebP 변환 MCP 서버
 
-A Model Context Protocol (MCP) server that converts PNG, JPG, and JPEG images to WebP format.
+이 프로젝트는 이미지 파일을 WebP 형식으로 변환하는 Model Context Protocol(MCP) 서버입니다.
 
-## Features
+## 기능
 
-- Converts single images to WebP format
-- Batch conversion of multiple images
-- Converts base64 encoded images to WebP
-- Option to keep or delete original files
-- Adjustable quality and lossless settings
+- PNG, JPG, JPEG 파일을 WebP로 변환
+- 개별 파일 또는 여러 파일 일괄 변환
+- Base64 인코딩된 이미지 변환
+- 무손실/손실 압축 지원
+- 품질 조정 지원
 
-## Tools
+## Smithery 배포 방법
 
-### 1. Convert a Single Image to WebP
+1. Smithery에서 서버 추가 또는 기존 서버 선택
+2. 배포 탭 접근 (인증된 소유자만 가능)
+3. 배포 구성 및 배포 진행
 
-```typescript
-mcp_conver_webp_convert_to_webp({
-  image_path: string,       // Required: Path to the image file
-  quality?: number,         // Optional: WebP quality (1-100), default: 80
-  lossless?: boolean,       // Optional: Use lossless compression, default: false
-  keep_original?: boolean,  // Optional: Keep original image, default: false
-  output_dir?: string       // Optional: Output directory, default: same as input
-})
-```
+## 로컬 개발 방법
 
-### 2. Batch Convert Images to WebP
+### 필수 조건
 
-```typescript
-mcp_conver_webp_batch_convert_to_webp({
-  image_paths: string[],    // Required: Array of image paths
-  quality?: number,         // Optional: WebP quality (1-100), default: 80
-  lossless?: boolean,       // Optional: Use lossless compression, default: false
-  keep_original?: boolean,  // Optional: Keep original images, default: false
-  output_dir?: string       // Optional: Output directory, default: same as input
-})
-```
+- Node.js 16+ 설치
+- npm 또는 yarn 설치
 
-### 3. Convert Base64 Image to WebP
-
-```typescript
-mcp_conver_webp_convert_base64_to_webp({
-  base64_image: string,     // Required: Base64 encoded image data
-  output_path: string,      // Required: Output file path
-  quality?: number,         // Optional: WebP quality (1-100), default: 80
-  lossless?: boolean        // Optional: Use lossless compression, default: false
-})
-```
-
-## Local Installation
-
-1. Clone the repository
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-3. Run the server:
-   ```
-   python server.py
-   ```
-
-## Hosting on Smithery
-
-This MCP server is configured for deployment on Smithery using the included `Dockerfile` and `smithery.yaml` files.
-
-## Testing
-
-You can test the server using the MCP Inspector:
+### 설치 및 실행
 
 ```bash
-npx @modelcontextprotocol/inspector python server.py
+# 의존성 설치
+npm install
+
+# 개발 모드 실행
+npm run dev
+
+# 빌드
+npm run build
+
+# 프로덕션 모드 실행
+npm start
 ```
+
+## MCP 도구 목록
+
+### 1. convert_to_webp
+
+개별 이미지 파일을 WebP로 변환합니다.
+
+**파라미터:**
+
+- `image_path`: 변환할 이미지 파일 경로 (필수)
+- `quality`: WebP 품질 (0-100, 기본값: 80)
+- `lossless`: 무손실 압축 사용 여부 (기본값: false)
+- `output_dir`: 출력 디렉토리 (기본값: 원본 위치)
+- `keep_original`: 원본 파일 유지 여부 (기본값: false)
+
+### 2. batch_convert_to_webp
+
+여러 이미지 파일을 WebP로 일괄 변환합니다.
+
+**파라미터:**
+
+- `image_paths`: 변환할 이미지 파일 경로 리스트 (필수)
+- `quality`: WebP 품질 (0-100, 기본값: 80)
+- `lossless`: 무손실 압축 사용 여부 (기본값: false)
+- `output_dir`: 출력 디렉토리 (기본값: 원본 위치)
+- `keep_original`: 원본 파일 유지 여부 (기본값: false)
+
+### 3. convert_base64_to_webp
+
+Base64로 인코딩된 이미지를 WebP로 변환합니다.
+
+**파라미터:**
+
+- `base64_image`: Base64로 인코딩된 이미지 데이터 (필수)
+- `output_path`: 저장할 파일 경로 (필수)
+- `quality`: WebP 품질 (0-100, 기본값: 80)
+- `lossless`: 무손실 압축 사용 여부 (기본값: false)
+
+## 라이센스
+
+MIT
